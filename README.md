@@ -14,8 +14,10 @@ npm install playwright-maestro
 
 ## Usage
 
-```
-import { test, Enter, Expect } from 'playwright-framework';
+### Using Playwright Maestro
+
+```javascript
+import { test, Enter, Expect } from 'playwright-maestro';
 
 test('should allow me to add todo items')
   .at('https://demo.playwright.dev/todomvc')
@@ -30,8 +32,38 @@ test('should allow me to add todo items')
     SaveResultAs('todosCount', () => JSON.parse(localStorage['react-todos']).length);
     ExpectContext('todosCount').ToEqual(1);
   });
-
 ```
+
+### Comparison with Plain Playwright
+
+Using plain Playwright, the same test would look like this:
+
+```javascript
+const { test, expect } = require('@playwright/test');
+
+test('should allow me to add todo items', async ({ page }) => {
+  await page.goto('https://demo.playwright.dev/todomvc');
+
+  // Add first todo item
+  await page.fill('[placeholder="What needs to be done?"]', 'Install Playwright Maestro');
+  await page.press('[placeholder="What needs to be done?"]', 'Enter');
+  const todoTitle = await page.textContent('[data-testid="todo-title"]');
+  expect(todoTitle).toBe('Install Playwright Maestro');
+
+  // Verify item is present
+  const todosCount = JSON.parse(await page.evaluate(() => localStorage['react-todos'])).length;
+  expect(todosCount).toBe(1);
+});
+```
+
+### Key Differences
+
+1. **No `await` Statements**: With Playwright Maestro, you don't need to explicitly use `await` for each action. The framework handles asynchronous operations internally, making the code cleaner and easier to read.
+2. **Readable DSL**: Actions like `Enter`, `Expect`, and `PressEnterOn` provide a more natural and descriptive way to define test steps compared to raw Playwright methods.
+3. **Context Management**: Playwright Maestro allows saving and reusing context (e.g., `SaveResultAs` and `ExpectContext`), reducing boilerplate code for managing intermediate values.
+4. **Improved Maintainability**: The DSL abstracts common patterns, making tests more maintainable and less prone to errors.
+
+By using Playwright Maestro, you can focus on the intent of the test rather than the mechanics of interacting with the browser.
 
 ## Roadmap
 
