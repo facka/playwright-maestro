@@ -1,15 +1,18 @@
 import { expect, Locator, test } from '@playwright/test';
 import { CommandRunner } from '../CommandRunner';
+import { UIComponent } from '../UIComponent';
 
 let _page: any;
 let _runner: CommandRunner;
 
-function resolveLocator(selector: string | Locator): Locator {
-  return typeof selector === 'string' ? _page.locator(selector) : selector;
-}
-
-function locatorToString(selector: string | Locator): String {
-  return typeof selector === 'string' ? selector : selector.toString();
+function resolveUIComponent(input: string | Locator | UIComponent): { locator: Locator; description: string } {
+  if (input instanceof UIComponent) {
+    return { locator: _page.locator(input.selector), description: input.name };
+  } else if (typeof input === 'string') {
+    return { locator: _page.locator(input), description: input };
+  } else {
+    return { locator: input, description: input.toString() };
+  }
 }
 
 export function setup(page: any, runner: CommandRunner) {
@@ -24,11 +27,10 @@ export function Goto(url: string) {
   _runner.add(() => test.step(`Navigating to URL: ${url}`, () => _page.goto(url)));
 }
 
-export function ClickOn(selector: string | Locator) {
+export function ClickOn(input: string | Locator | UIComponent) {
+  const { locator, description } = resolveUIComponent(input);
   _runner.add(() =>
-    test.step(`Clicking on element: ${locatorToString(selector)}`, () =>
-      resolveLocator(selector).click()
-    )
+    test.step(`Clicking on element: ${description}`, () => locator.click())
   );
 }
 
@@ -40,78 +42,75 @@ export function WaitUntilURLIs(url: string | RegExp) {
 
 export function Enter(text: string) {
   return {
-    into(selector: string | Locator) {
+    into(input: string | Locator | UIComponent) {
+      const { locator, description } = resolveUIComponent(input);
       _runner.add(() =>
-        test.step(`Entering text "${text}" into element: ${locatorToString(selector)}`, () =>
-          resolveLocator(selector).fill(text)
-        )
+        test.step(`Entering text "${text}" into element: ${description}`, () => locator.fill(text))
       );
     }
   };
 }
 
-export function PressKeyOn(selector: string | Locator, key: string) {
+export function PressKeyOn(input: string | Locator | UIComponent, key: string) {
+  const { locator, description } = resolveUIComponent(input);
   _runner.add(() =>
-    test.step(`Pressing key "${key}" on element: ${locatorToString(selector)}`, () =>
-      resolveLocator(selector).press(key)
-    )
+    test.step(`Pressing key "${key}" on element: ${description}`, () => locator.press(key))
   );
 }
 
-export function HoverOver(selector: string | Locator) {
+export function HoverOver(input: string | Locator | UIComponent) {
+  const { locator, description } = resolveUIComponent(input);
   _runner.add(() =>
-    test.step(`Hovering over element: ${locatorToString(selector)}`, () =>
-      resolveLocator(selector).hover()
-    )
+    test.step(`Hovering over element: ${description}`, () => locator.hover())
   );
 }
 
-export function PressEnterOn(selector: string | Locator) {
-  PressKeyOn(selector, 'Enter');
+export function PressEnterOn(input: string | Locator | UIComponent) {
+  PressKeyOn(input, 'Enter');
 }
 
-export function PressBackspaceOn(selector: string | Locator) {
-  PressKeyOn(selector, 'Backspace');
+export function PressBackspaceOn(input: string | Locator | UIComponent) {
+  PressKeyOn(input, 'Backspace');
 }
 
-export function PressEscapeOn(selector: string | Locator) {
-  PressKeyOn(selector, 'Escape');
+export function PressEscapeOn(input: string | Locator | UIComponent) {
+  PressKeyOn(input, 'Escape');
 }
 
-export function Expect(selector: string | Locator) {
+export function Expect(input: string | Locator | UIComponent) {
+  const { locator, description } = resolveUIComponent(input);
   return {
     ToHaveText(expected: string | RegExp | string[]) {
       _runner.add(() =>
-        test.step(`Expecting element "${locatorToString(selector)}" to have text: ${expected}`, async () => {
-          const locatorObj = resolveLocator(selector);
-          await expect(locatorObj).toHaveText(expected);
+        test.step(`Expecting element "${description}" to have text: ${expected}`, async () => {
+          await expect(locator).toHaveText(expected);
         })
       );
     },
     IsVisible() {
       _runner.add(() =>
-        test.step(`Expecting element "${locatorToString(selector)}" to be visible`, async () => {
-          const isVisible = await resolveLocator(selector).isVisible();
+        test.step(`Expecting element "${description}" to be visible`, async () => {
+          const isVisible = await locator.isVisible();
           if (!isVisible) {
-            throw new Error(`Expected element "${locatorToString(selector)}" to be visible, but it is not`);
+            throw new Error(`Expected element "${description}" to be visible, but it is not`);
           }
         })
       );
     },
     IsHidden() {
       _runner.add(() =>
-        test.step(`Expecting element "${locatorToString(selector)}" to be hidden`, async () => {
-          const isHidden = await resolveLocator(selector).isHidden();
+        test.step(`Expecting element "${description}" to be hidden`, async () => {
+          const isHidden = await locator.isHidden();
           if (!isHidden) {
-            throw new Error(`Expected element "${locatorToString(selector)}" to be hidden, but it is visible`);
+            throw new Error(`Expected element "${description}" to be hidden, but it is visible`);
           }
         })
       );
     },
     IsEmpty() {
       _runner.add(() =>
-        test.step(`Expecting input "${locatorToString(selector)}" to be empty`, async () => {
-          const value = await resolveLocator(selector).inputValue();
+        test.step(`Expecting input "${description}" to be empty`, async () => {
+          const value = await locator.inputValue();
           if (value !== '') {
             throw new Error(`Expected input to be empty, but got "${value}"`);
           }
@@ -121,12 +120,12 @@ export function Expect(selector: string | Locator) {
     HasAttribute(attribute: string, value: string) {
       _runner.add(() =>
         test.step(
-          `Expecting element "${locatorToString(selector)}" to have attribute "${attribute}" with value "${value}"`,
+          `Expecting element "${description}" to have attribute "${attribute}" with value "${value}"`,
           async () => {
-            const actual = await resolveLocator(selector).getAttribute(attribute);
+            const actual = await locator.getAttribute(attribute);
             if (actual !== value) {
               throw new Error(
-                `Expected element "${locatorToString(selector)}" to have attribute "${attribute}" with value "${value}", but got "${actual}"`
+                `Expected element "${description}" to have attribute "${attribute}" with value "${value}", but got "${actual}"`
               );
             }
           }
@@ -135,11 +134,11 @@ export function Expect(selector: string | Locator) {
     },
     CountIs(expectedCount: number) {
       _runner.add(() =>
-        test.step(`Expecting element "${locatorToString(selector)}" to have count: ${expectedCount}`, async () => {
-          const count = await resolveLocator(selector).count();
+        test.step(`Expecting element "${description}" to have count: ${expectedCount}`, async () => {
+          const count = await locator.count();
           if (count !== expectedCount) {
             throw new Error(
-              `Expected "${locatorToString(selector)}" to have ${expectedCount} elements, but found ${count}`
+              `Expected "${description}" to have ${expectedCount} elements, but found ${count}`
             );
           }
         })

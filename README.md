@@ -16,19 +16,23 @@ npm install playwright-maestro
 
 ### Using Playwright Maestro
 
-```javascript
-import { test, Enter, Expect } from 'playwright-maestro';
+```typescript
+import { test, Enter, Expect, PressEnterOn } from 'playwright-maestro';
+import { UIComponent } from '../src/UIComponent';
+
+const todoInput = new UIComponent('Todo Input', '[placeholder="What needs to be done?"]');
+const todoTitle = new UIComponent('Todo Title', '[data-testid="todo-title"]');
 
 test('should allow me to add todo items')
   .at('https://demo.playwright.dev/todomvc')
   .do(() => {
-    // Add first todo item
-    Enter('Install Playwright Maestro').into('[placeholder="What needs to be done?"]');
-    PressEnterOn('[placeholder="What needs to be done?"]');
-    Expect('[data-testid="todo-title"]').ToHaveText('Install Playwright Maestro');
+    // Add first todo item using UIComponent
+    Enter('Install Playwright Maestro').into(todoInput);
+    PressEnterOn(todoInput);
+    Expect(todoTitle).ToHaveText('Install Playwright Maestro');
 
-    // Verify item is present
-    Expect('[data-testid="todo-title"]').ToHaveText('Install Playwright Maestro');
+    // Verify item is present using UIComponent
+    Expect(todoTitle).ToHaveText('Install Playwright Maestro');
     SaveResultAs('todosCount', () => JSON.parse(localStorage['react-todos']).length);
     ExpectContext('todosCount').ToEqual(1);
   });
