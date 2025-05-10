@@ -1,0 +1,20 @@
+{
+  "name": "playwright-maestro",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+   "build": "tsup src --format cjs,esm --dts --out-dir dist"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "devDependencies": {
+    "@playwright/test": "^1.52.0",
+    "tsup": "^8.4.0",
+    "typescript": "^5.8.3"
+  },
+  "peerDependencies": {
+    "@playwright/test": "^1.0.0"
+  }
+}
