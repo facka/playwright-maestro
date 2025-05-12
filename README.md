@@ -4,13 +4,32 @@ A custom framework for Playwright tests with a DSL for writing readable and main
 
 ## Features
 - DSL for actions like `Enter`, `Click`, `Expect`, etc.
+- **Enhanced Reporting**: Each DSL method uses `test.step` to provide detailed and structured output in Playwright reports.
 - Context-based assertions.
 - Modular and reusable test structure.
+
+
+## 🔍 Under the Hood: How the DSL Works
+playwright-maestro is a domain-specific language (DSL) built on top of the Playwright testing library. While the syntax aims to improve readability and reduce repetitive await statements, it still uses Playwright's powerful core under the hood.
+
+This means:
+
+✅ Selectors use Playwright locators (page.locator(...))
+
+✅ Assertions are powered by Playwright's expect() API
+
+✅ Actions like Click, Enter, PressEnterOn call native Playwright methods
+
+You're not replacing Playwright — you're writing more expressive tests with it.
 
 ## Installation
 ```bash
 npm install playwright-maestro
 ```
+
+## 📦 NPM Package
+
+You can find the Playwright Maestro package on [npm](https://www.npmjs.com/package/playwright-maestro).
 
 ## Usage
 
