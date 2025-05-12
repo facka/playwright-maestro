@@ -1,7 +1,7 @@
 import { setup, Goto } from './dsl/actions';
 import { createAsyncContext } from './CommandRunner';
 
-export const AtPage = async ({page, url}: {page: any; url: string}) => ({
+export const AtPage = ({page, url}: {page: any; url: string}) => ({
   async do(testFn: () => void) {
     // Initialize the test context (runner)
     const { runner } = createAsyncContext(page);
