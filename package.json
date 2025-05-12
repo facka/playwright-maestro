@@ -1,10 +1,19 @@
 {
   "name": "playwright-maestro",
-  "version": "1.0.3",
+  "version": "1.0.4",
   "description": "",
-  "main": "index.js",
+  "main": "dist/index.js",
+  "module": "dist/index.mjs",
+  "types": "dist/index.d.ts",
+  "exports": {
+    ".": {
+      "require": "./dist/index.js",
+      "import": "./dist/index.mjs",
+      "types": "./dist/index.d.ts"
+    }
+  },
   "scripts": {
-   "build": "tsup src --format cjs,esm --dts --out-dir dist"
+    "build": "tsup src --format cjs,esm --dts --out-dir dist"
   },
   "keywords": [],
   "author": "",
@@ -17,7 +26,6 @@
   "peerDependencies": {
     "@playwright/test": "^1.0.0"
   },
-  "types": "dist/index.d.ts",
   "files": [
     "dist",
     "README.md"
