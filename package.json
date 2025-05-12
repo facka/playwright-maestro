@@ -1,6 +1,6 @@
 {
   "name": "playwright-maestro",
-  "version": "1.0.2",
+  "version": "1.0.3",
   "description": "",
   "main": "index.js",
   "scripts": {
@@ -17,5 +17,9 @@
   "peerDependencies": {
     "@playwright/test": "^1.0.0"
   },
-  "types": "dist/index.d.ts"
+  "types": "dist/index.d.ts",
+  "files": [
+    "dist",
+    "README.md"
+  ]
 }
