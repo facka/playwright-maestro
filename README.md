@@ -9,7 +9,7 @@ A custom framework for Playwright tests with a DSL for writing readable and main
 - Modular and reusable test structure.
 
 
-## 🔍 Under the Hood: How the DSL Works
+## Under the Hood: How the DSL Works
 playwright-maestro is a domain-specific language (DSL) built on top of the Playwright testing library. While the syntax aims to improve readability and reduce repetitive await statements, it still uses Playwright's powerful core under the hood.
 
 This means:

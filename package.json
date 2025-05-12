@@ -1,6 +1,6 @@
 {
   "name": "playwright-maestro",
-  "version": "1.0.5",
+  "version": "1.0.6",
   "description": "",
   "main": "dist/index.js",
   "module": "dist/index.mjs",
@@ -24,7 +24,7 @@
     "typescript": "^5.8.3"
   },
   "peerDependencies": {
-    "@playwright/test": "^1.0.0"
+    "@playwright/test": "^1.52.0"
   },
   "files": [
     "dist",
