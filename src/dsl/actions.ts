@@ -34,6 +34,13 @@ export function ClickOn(input: string | Locator | UIComponent) {
   );
 }
 
+export function DoubleClickOn(input: string | Locator | UIComponent) {
+  const { locator, description } = resolveUIComponent(input);
+  _runner.add(() =>
+    test.step(`Double-clicking on element: ${description}`, () => locator.dblclick())
+  );
+}
+
 export function WaitUntilURLIs(url: string | RegExp) {
   _runner.add(() =>
     test.step(`Waiting until URL is: ${url}`, () => _page.waitForURL(url))
