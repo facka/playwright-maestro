@@ -36,25 +36,41 @@ You can find the Playwright Maestro package on [npm](https://www.npmjs.com/packa
 ### Using Playwright Maestro
 
 ```typescript
-import { test, Enter, Expect, PressEnterOn } from 'playwright-maestro';
-import { UIComponent } from '../src/UIComponent';
+// ./pages/TodoMVCPage.ts
+import { UIComponent, Enter, PressEnterOn, Step } from 'playwright-maestro';
 
+// Define UIComponents
 const todoInput = new UIComponent('Todo Input', '[placeholder="What needs to be done?"]');
 const todoTitle = new UIComponent('Todo Title', '[data-testid="todo-title"]');
 
-test('should allow me to add todo items')
-  .at('https://demo.playwright.dev/todomvc')
-  .do(() => {
-    // Add first todo item using UIComponent
-    Enter('Install Playwright Maestro').into(todoInput);
-    PressEnterOn(todoInput);
-    Expect(todoTitle).ToHaveText('Install Playwright Maestro');
+const addItem = Step('Add Item', (params: {
+  item: string
+}) => {
+  const { item } = params;
+  Enter(item).into(todoInput);
+  PressEnterOn(todoInput); 
+});
 
-    // Verify item is present using UIComponent
-    Expect(todoTitle).ToHaveText('Install Playwright Maestro');
-    SaveResultAs('todosCount', () => JSON.parse(localStorage['react-todos']).length);
-    ExpectContext('todosCount').ToEqual(1);
-  });
+export default {
+  todoInput, todoTitle,
+  addItem
+};
+
+// example
+import { ExpectContext, Expect, SaveResultAs, Goto, Steps } from 'playwright-maestro';
+import { test } from '@playwright/test'; 
+import TodoMVCPage from './pages/TodoMVCPage';
+
+
+test('Add items to the todo list', Steps(() => {
+  Goto('https://demo.playwright.dev/todomvc');
+  TodoMVCPage.addItem({ item: 'Install Playwright Maestro'});
+
+  // Verify item is present
+  Expect(TodoMVCPage.todoTitle).ToHaveText('Install Playwright Maestro');
+  SaveResultAs('todosCount', () => JSON.parse(localStorage['react-todos']).length);
+  ExpectContext('todosCount').ToEqual(1);
+}));
 ```
 
 ### Comparison with Plain Playwright

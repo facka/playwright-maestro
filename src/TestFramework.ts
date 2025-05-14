@@ -1,21 +1,23 @@
 import { setup, Goto } from './dsl/actions';
 import { createAsyncContext } from './CommandRunner';
+import { Page } from './Page';
+import { PlaywrightTestArgs, PlaywrightTestOptions, TestInfo } from '@playwright/test';
 
-export const AtPage = ({page, url}: {page: any; url: string}) => ({
-  async do(testFn: () => void) {
+export const Steps = (testFn: () => void) => {
+  return async ({ page }: PlaywrightTestArgs & PlaywrightTestOptions, testInfo: TestInfo): Promise<void> => {
     // Initialize the test context (runner)
     const { runner } = createAsyncContext(page);
     setup(page, runner);
 
-    // Automatically navigate to the specified URL
-    Goto(url);
-
-    // Call the provided test function with the context
+    // Call the provided test function with the page instance
     testFn();
 
     // Execute the queued actions
     await runner.run();
-  },
-});
+  }
+};
 
 export * from './dsl/actions';
+
+export * from './UIComponent';
+export { Page };

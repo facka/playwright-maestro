@@ -1,3 +1,5 @@
+"use strict;"
+
 import { expect, Locator, test } from '@playwright/test';
 import { CommandRunner } from '../CommandRunner';
 import { UIComponent } from '../UIComponent';
@@ -5,14 +7,42 @@ import { UIComponent } from '../UIComponent';
 let _page: any;
 let _runner: CommandRunner;
 
-function resolveUIComponent(input: string | Locator | UIComponent): { locator: Locator; description: string } {
-  if (input instanceof UIComponent) {
-    return { locator: _page.locator(input.selector), description: input.name };
+function resolveUIComponent(
+  input: string | Locator | UIComponent
+): { locator: Locator; description: string } {
+  console.log('Input:', input);
+  if (isUIComponent(input)) {
+    return {
+      locator: _page.locator(input.selector),
+      description: input.name,
+    };
   } else if (typeof input === 'string') {
-    return { locator: _page.locator(input), description: input };
+    return {
+      locator: _page.locator(input),
+      description: input,
+    };
+  } else if (input && typeof input === 'object' && 'click' in input) {
+    // Assuming it's a Playwright Locator if it has a `click` method
+    return {
+      locator: input as Locator,
+      description: input.toString(),
+    };
   } else {
-    return { locator: input, description: input.toString() };
+    throw new Error(
+      `Invalid input type for resolveUIComponent. Expected string, Locator, or UIComponent, but received: ${typeof input}`
+    );
   }
+}
+
+function isUIComponent(input: any): input is UIComponent {
+  return (
+    input &&
+    typeof input === 'object' &&
+    'selector' in input &&
+    'name' in input &&
+    typeof input.selector === 'string' && 
+    typeof input.name === 'string'
+  );
 }
 
 export function setup(page: any, runner: CommandRunner) {
@@ -25,6 +55,26 @@ export function Goto(url: string) {
     throw new Error('CommandRunner is not initialized. Call setup() before using this function.');
   }
   _runner.add(() => test.step(`Navigating to URL: ${url}`, () => _page.goto(url)));
+}
+
+export function Step(name: string, fn: (params: any) => void) {
+  return (params: any) => {
+    if (!_runner) {
+      throw new Error('CommandRunner is not initialized. Call setup() before using this function.');
+    }
+    _runner.add(async () => {
+      await test.step(`${name} (${JSON.stringify(params)})`, async () => {
+        const tempQueue: (() => Promise<any>)[] = [];
+        const originalAdd = _runner.add.bind(_runner);
+        _runner.add = (step) => tempQueue.push(step);
+        fn(params);
+        _runner.add = originalAdd;
+        for (const step of tempQueue) {
+          await step();
+        }
+      });
+    });
+  };
 }
 
 export function ClickOn(input: string | Locator | UIComponent) {
@@ -50,7 +100,11 @@ export function WaitUntilURLIs(url: string | RegExp) {
 export function Enter(text: string) {
   return {
     into(input: string | Locator | UIComponent) {
+      console.log('typeof input:', typeof input);
+      console.log('instanceof UIComponent?:', input instanceof UIComponent);
       const { locator, description } = resolveUIComponent(input);
+      console.log(`Entering text "${text}" into element: ${description}`);
+      console.log(`Locator: ${locator}`);
       _runner.add(() =>
         test.step(`Entering text "${text}" into element: ${description}`, () => locator.fill(text))
       );
@@ -156,11 +210,23 @@ export function Expect(input: string | Locator | UIComponent) {
 
 export function SaveResultAs(name: string, fn: () => Promise<any>) {
   _runner.add(() =>
-    test.step(`Saving result as "${name}"`, async () => {
+    /* test.step(`Saving result as "${name}"`, async () => {
+      const value = await _page.evaluate(fn);
+      _runner.set(name, value);
+    }) */
+    test.step(`Evaluating function "${fn}"`, async () => {
       const value = await _page.evaluate(fn);
       _runner.set(name, value);
     })
   );
+  
+  _runner.add(() =>
+    test.step(`Saving result '${_runner.get(name)}' as '${name}'`, async () => {
+      console.log(`Saving result "${_runner.get(name)}" as "${name}"`);
+    })
+  );
+
+    
 }
 
 export function When(
@@ -193,9 +259,7 @@ export function ExpectContext(key: string) {
       _runner.add(() =>
         test.step(`Expecting context property "${key}" to equal "${expected}"`, async () => {
           const actual = _runner.context[key];
-          if (actual !== expected) {
-            throw new Error(`Expected context property "${key}" to equal "${expected}", but got "${actual}"`);
-          }
+          expect(actual).toBe(expected)
         })
       );
     },
@@ -203,9 +267,7 @@ export function ExpectContext(key: string) {
       _runner.add(() =>
         test.step(`Expecting context property "${key}" to contain "${expected}"`, async () => {
           const actual = _runner.context[key];
-          if (!actual || !actual.includes(expected)) {
-            throw new Error(`Expected context property "${key}" to contain "${expected}", but got "${actual}"`);
-          }
+          expect(actual).toContain(expected)
         })
       );
     },
@@ -213,9 +275,7 @@ export function ExpectContext(key: string) {
       _runner.add(() =>
         test.step(`Expecting context property "${key}" to be defined`, async () => {
           const actual = _runner.context[key];
-          if (actual === undefined) {
-            throw new Error(`Expected context property "${key}" to be defined, but it is undefined`);
-          }
+          expect(actual).toBeDefined()
         })
       );
     }
