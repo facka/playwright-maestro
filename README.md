@@ -33,7 +33,7 @@ You can find the Playwright Maestro package on [npm](https://www.npmjs.com/packa
 
 ## Usage
 
-### Using Playwright Maestro
+### Using Playwright Maestro with POM
 
 ```typescript
 // ./pages/TodoMVCPage.ts
@@ -55,7 +55,9 @@ export default {
   todoInput, todoTitle,
   addItem
 };
+```
 
+```typescript
 // example
 import { ExpectContext, Expect, SaveResultAs, Goto, Steps } from 'playwright-maestro';
 import { test } from '@playwright/test'; 
@@ -73,24 +75,62 @@ test('Add items to the todo list', Steps(() => {
 }));
 ```
 
-### Comparison with Plain Playwright
+### Comparison with Plain Playwright using POM
 
 Using plain Playwright, the same test would look like this:
 
-```javascript
-const { test, expect } = require('@playwright/test');
+```typescript
+// ./pages/TodoMVCPage.ts
+import { Page } from '@playwright/test';
+
+export class TodoMVCPage {
+  private page: Page;
+  private todoInput = '[placeholder="What needs to be done?"]';
+  private todoTitle = '[data-testid="todo-title"]';
+
+  constructor(page: Page) {
+    this.page = page;
+  }
+
+  async navigate() {
+    await this.page.goto('https://demo.playwright.dev/todomvc');
+  }
+
+  async addTodoItem(item: string) {
+    await this.page.fill(this.todoInput, item);
+    await this.page.press(this.todoInput, 'Enter');
+  }
+
+  async getTodoTitle(): Promise<string> {
+    return this.page.textContent(this.todoTitle);
+  }
+
+  async getTodosCount(): Promise<number> {
+    return JSON.parse(await this.page.evaluate(() => localStorage['react-todos'])).length;
+  }
+}
+```
+
+```typescript
+// example
+import { test, expect } from '@playwright/test';
+import { TodoMVCPage } from './pages/TodoMVCPage';
 
 test('should allow me to add todo items', async ({ page }) => {
-  await page.goto('https://demo.playwright.dev/todomvc');
+  const todoPage = new TodoMVCPage(page);
+
+  // Navigate to the page
+  await todoPage.navigate();
 
   // Add first todo item
-  await page.fill('[placeholder="What needs to be done?"]', 'Install Playwright Maestro');
-  await page.press('[placeholder="What needs to be done?"]', 'Enter');
-  const todoTitle = await page.textContent('[data-testid="todo-title"]');
-  expect(todoTitle).toBe('Install Playwright Maestro');
+  await todoPage.addTodoItem('Install Playwright Maestro');
 
   // Verify item is present
-  const todosCount = JSON.parse(await page.evaluate(() => localStorage['react-todos'])).length;
+  const todoTitle = await todoPage.getTodoTitle();
+  expect(todoTitle).toBe('Install Playwright Maestro');
+
+  // Verify item count in localStorage
+  const todosCount = await todoPage.getTodosCount();
   expect(todosCount).toBe(1);
 });
 ```
