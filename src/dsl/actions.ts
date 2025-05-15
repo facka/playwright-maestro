@@ -12,10 +12,17 @@ function resolveUIComponent(
 ): { locator: Locator; description: string } {
   console.log('Input:', input);
   if (isUIComponent(input)) {
-    return {
-      locator: _page.locator(input.selector),
-      description: input.name,
-    };
+    if (input.parent) {
+      return {
+        locator: _page.locator(input.parent.selector).locator(input.selector),
+        description: input.toString(),
+      };
+    } else {
+      return {
+        locator: _page.locator(input.selector),
+        description: input.toString(),
+      };
+    }
   } else if (typeof input === 'string') {
     return {
       locator: _page.locator(input),
