@@ -70,13 +70,13 @@ export function Goto(url: string) {
   _runner.add(() => test.step(`Navigating to URL: ${url}`, () => _page.goto(url)));
 }
 
-export function Step(name: string, fn: (params: any) => void) {
+export function Step(name: string, fn: (params?: any) => void) {
   return (params: any) => {
     if (!_runner) {
       throw new Error('CommandRunner is not initialized. Call setup() before using this function.');
     }
     _runner.add(async () => {
-      await test.step(`${name} (${JSON.stringify(params)})`, async () => {
+      await test.step(`${name}${params ? ` (${JSON.stringify(params)})` : ''}`, async () => {
         const tempQueue: (() => Promise<any>)[] = [];
         const originalAdd = _runner.add.bind(_runner);
         _runner.add = (step) => tempQueue.push(step);
