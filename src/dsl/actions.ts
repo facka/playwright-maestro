@@ -12,17 +12,23 @@ function resolveUIComponent(
 ): { locator: Locator; description: string } {
   console.log('Input:', input);
   if (isUIComponent(input)) {
-    if (input.parent) {
-      return {
-        locator: _page.locator(input.parent.selector).locator(input.selector),
-        description: input.toString(),
-      };
-    } else {
-      return {
-        locator: _page.locator(input.selector),
-        description: input.toString(),
-      };
+    const selectors = [];
+    let current: UIComponent | undefined = input;
+
+    while (current) {
+      selectors.unshift(current.selector);
+      current = current.parent;
     }
+
+    let locator = _page.locator(selectors[0]);
+    for (let i = 1; i < selectors.length; i++) {
+      locator = locator.locator(selectors[i]);
+    }
+
+    return {
+      locator,
+      description: input.toString(),
+    };
   } else if (typeof input === 'string') {
     return {
       locator: _page.locator(input),
