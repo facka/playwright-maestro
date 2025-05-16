@@ -71,7 +71,7 @@ export function Goto(url: string) {
 }
 
 export function Step(name: string, fn: (params?: any) => void) {
-  return (params: any) => {
+  return (params?: any) => {
     if (!_runner) {
       throw new Error('CommandRunner is not initialized. Call setup() before using this function.');
     }
