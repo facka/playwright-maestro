@@ -5,10 +5,10 @@ import TodoMVCPage from './pages/TodoMVCPage';
 
 test('Add items to the todo list', Steps(() => {
   Goto('https://demo.playwright.dev/todomvc');
-  TodoMVCPage.addItem({ item: 'Install Playwright Maestro'});
+  const { item } = TodoMVCPage.addItem({ item: 'Install Playwright Maestro'});
 
   // Verify item is present
-  Expect(TodoMVCPage.todoTitle).ToHaveText('Install Playwright Maestro');
+  Expect(TodoMVCPage.todoTitle).ToHaveText(item);
   SaveResultAs('todosCount', () => JSON.parse(localStorage['react-todos']).length);
   ExpectContext('todosCount').ToEqual(1);
 }));

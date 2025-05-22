@@ -6,12 +6,16 @@ const todoListSection = new UIComponent('Todo List Section', '.todo-list', todoA
 const todoInput = new UIComponent('Todo Input', '[placeholder="What needs to be done?"]', todoAppSection);
 const todoTitle = new UIComponent('Todo Title', '[data-testid="todo-title"]', todoListSection);
 
+const Submit = Step('Submit', () => {
+  PressEnterOn(todoInput); 
+});
+
 const addItem = Step('Add Item', (params: {
   item: string
 }) => {
   const { item } = params;
   Enter(item).into(todoInput);
-  PressEnterOn(todoInput); 
+  Submit()
 });
 
 export default {

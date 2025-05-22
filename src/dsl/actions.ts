@@ -70,7 +70,7 @@ export function Goto(url: string) {
   _runner.add(() => test.step(`Navigating to URL: ${url}`, () => _page.goto(url)));
 }
 
-export function Step(name: string, fn: (params?: any) => void) {
+export function Step(name: string, fn: (params?: any) => any) {
   return (params?: any) => {
     if (!_runner) {
       throw new Error('CommandRunner is not initialized. Call setup() before using this function.');
@@ -87,6 +87,7 @@ export function Step(name: string, fn: (params?: any) => void) {
         }
       });
     });
+    return params
   };
 }
 
